@@ -1,8 +1,6 @@
 import pymysql
 import sqlalchemy as db
 import config
-from sqlalchemy.dialects import postgresql
-import sys
 
 
 def get_data_from_mysql():
@@ -11,9 +9,9 @@ def get_data_from_mysql():
     connection_mysql = engine_mysql.connect()
 
     metadata = db.MetaData()
-    abouts = db.Table('abouts', metadata, autoload=True, autoload_with=engine_mysql)
+    klassifikator_gostov_1_ur = db.Table('klassifikator_gostov_1_ur', metadata, autoload=True, autoload_with=engine_mysql)
 
-    query = db.select([abouts])
+    query = db.select([klassifikator_gostov_1_ur])
     ResultProxy = connection_mysql.execute(query)
     ResultSet = ResultProxy.fetchall()
     return ResultSet
@@ -23,23 +21,20 @@ def push_data_to_postgres(data):
     connection_postgres = engine_postgres.connect()
 
     metadata = db.MetaData(bind=engine_postgres)
-    about = db.Table('homepage_about', metadata, autoload=True)
+    gosts_section = db.Table('gosts_gostsections', metadata, autoload=True)
 
-    i = db.insert(about)
-    q = i.values(**data)
-
-    # print(str(q.compile(dialect=postgresql.dialect())))
-    connection_postgres.execute(q)
+    query = db.insert(gosts_section).values(**data)
+    connection_postgres.execute(query)
 
 def prepare_date(data):
     for i in data:
         payload = {
-            'h1': i[3],
+            'section_number': i[2],
+            'section_name': i[3],
             'slug': i[1],
-            'title': i[2],
-            'breadcrumb_text': i[3],
-            'post': i[5],
-            'description': i[4],
+            'h1': i[3],
+            'title': i[3],
+            'description': i[3],
             'is_published': True,
             'created_at': 'NOW()',
             'updated_at': 'NOW()',
@@ -48,8 +43,8 @@ def prepare_date(data):
 
 
 def main():
-    mysql_abouts = get_data_from_mysql()
-    prepare_date(mysql_abouts)
+    mysql_data = get_data_from_mysql()
+    prepare_date(mysql_data)
 
 
 if __name__ == '__main__':
